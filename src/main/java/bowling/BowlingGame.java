@@ -5,7 +5,7 @@
  * Sungsoon Lim <sungsoon0813@sds.co.kr>
  */
 
-package bowlingNew;
+package bowling;
 
 import java.util.InputMismatchException;
 import java.util.Scanner;
@@ -40,19 +40,26 @@ public class BowlingGame {
 	// 투구 !!!!!!!
 	public int roll(int pin) {
 
-		if (pin < 0 || pin > 10)
+		if (pin < 0 || pin > 10) {
+			printInvalidMessage();
 			return 0;
+		}
 
 		if (isTenFrame())
 			return tenFrameWork(pin);
 
 		return notTenFrameWork(pin);
 	}
-	
-	
+
+
 
 	// 10 프레임 이외에 호출
 	private int notTenFrameWork(int pin) {
+
+		while(!validation(pin)) {
+			printInvalidMessage();
+			return 0;
+		}
 
 		if (isGutter(pin)) {
 			gutterWork(pin);
@@ -74,26 +81,51 @@ public class BowlingGame {
 		return totalScore;
 	}
 
+	private void printInvalidMessage() {
+		System.out.println("올바르지 않은 값을 입력하였습니다. 다시 입력하세요.");
+	}
+
+	private boolean validation(int pin) {
+
+		if (frameRoll == 1 && frameTenOverPin(pin))
+			return false;
+
+		return true;
+
+	}
+
+
+	// 프레임에서 쓰러진 핀의 수가 10이 넘는지 확인
+	private boolean frameTenOverPin(int pin) {
+
+		if (hitPin[frame][0] + pin > 10)
+			return true;
+
+		return false;
+
+	}
+
+
 
 	// Gutter, Strike, Spare 가 아닐 시 작업
 	private void otherWork(int pin) {
-		
+
 		hitPin[frame][frameRoll] = pin;
 		scoreCalculator();
 		appendPrintRollScore(pin+"|");
 		nextRoll();
-		
+
 	}
 
 
 	// spare 처리 시 작업 
 	private void spareWork(int pin) {
-		
+
 		hitPin[frame][1] = pin;
 		scoreCalculator();
 		appendPrintRollScore("/|");
 		nextFrame();
-		
+
 	}
 
 
@@ -221,11 +253,11 @@ public class BowlingGame {
 
 	// 스트라이크 한번 친 경우 점수 계산
 	private void sumStrikeOnce() {
-		
+
 		totalScore += (10 + hitPin[scoreFrameIndex+1][0] + hitPin[scoreFrameIndex+1][1]);
 		appendPrintTotalScore(toScoreFormatString(totalScore));
 		preNextFrameScore(1);
-		
+
 	}
 
 	// 스트라이크 두번 연속 친 경우 점수 계산 
@@ -238,16 +270,16 @@ public class BowlingGame {
 
 		appendPrintTotalScore(toScoreFormatString(totalScore));
 		preNextFrameScore(1);
-		
+
 	}
 
 	// 스페어 처리시 점수 계산
 	private void sumSpare() {
-		
+
 		totalScore += (10 + hitPin[scoreFrameIndex+1][0]);
 		appendPrintTotalScore(toScoreFormatString(totalScore));
 		preNextFrameScore(2);
-		
+
 	}
 
 	// 프레임 점수 계산 후 다음 프레임의 점수 계산을 위한 변수 작업
@@ -266,37 +298,43 @@ public class BowlingGame {
 			sumHitPinFrame();
 
 		// 스트라이크, 스페어 계산
-		if (diffRollIndexScoreIndex(2)) {
-
-			// 스트라이크
-			if ( hitPin[scoreFrameIndex][0] == 10 ) {
-
-				// 더블 스트라이크
-				if (hitPin[scoreFrameIndex+1][0] == 10) {
-					sumStrikeDouble();
-				}
-
-				// 스트라이크
-				else {
-					sumStrikeOnce();
-
-					// 스페어가 아니면 계산
-					if ( !(hitPin[scoreFrameIndex][0] + hitPin[scoreFrameIndex][1] == 10 && hitPin[scoreFrameIndex][0] != 10) ) {
-						sumHitPinFrame();
-					}
-				}
-			}
-
-			// 스페어
-			else if (hitPin[scoreFrameIndex][0] + hitPin[scoreFrameIndex][1] == 10 && hitPin[scoreFrameIndex][0] != 10) {
-				sumSpare();
-			}
-
-		}
+		if (diffRollIndexScoreIndex(2))
+			sumStrikeOrSpare();
 
 		rollIndex++;
 
 	}
+
+	private void sumStrikeOrSpare() {
+
+		// 스트라이크
+		if ( hitPin[scoreFrameIndex][0] == 10 ) {
+
+			// 더블 스트라이크
+			if (hitPin[scoreFrameIndex+1][0] == 10) {
+				sumStrikeDouble();
+			}
+
+			// 스트라이크
+			else {
+				sumStrikeOnce();
+
+				// 스페어가 아니면 계산
+				if ( !(hitPin[scoreFrameIndex][0] + hitPin[scoreFrameIndex][1] == 10 && hitPin[scoreFrameIndex][0] != 10) ) {
+					sumHitPinFrame();
+				}
+			}
+		}
+
+		// 스페어
+		else if (hitPin[scoreFrameIndex][0] + hitPin[scoreFrameIndex][1] == 10 && hitPin[scoreFrameIndex][0] != 10) {
+			sumSpare();
+		}
+
+
+	}
+
+
 
 	// 투구 수 - 점수 계산 인덱스
 	private boolean diffRollIndexScoreIndex(int diff) {

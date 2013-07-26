@@ -4,7 +4,7 @@
  * Copyright (C) 2013 Samjung Data Service Co., Ltd.,
  * Sungsoon Lim <sungsoon0813@sds.co.kr>
  */
-package bowlingNew;
+package bowling;
 
 public class GameOverException extends Exception{
 
